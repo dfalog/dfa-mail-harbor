@@ -1,5 +1,5 @@
 // Cliente do servidor DFA Mail. O navegador guarda apenas um token opaco — nunca a senha.
-const BASE = (import.meta.env.VITE_MAIL_API_URL as string | undefined) || "http://localhost:4000";
+const BASE = (import.meta.env["VITE_MAIL_API_URL"] as string | undefined) || "http://localhost:4000";
 const KEY = "dfa-mail-token";
 
 export type Address = { name?: string; address?: string };

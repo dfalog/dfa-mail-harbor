@@ -3,7 +3,7 @@ import { Paperclip, Send, X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/mail-api";
 
-export type Draft = { to?: string; cc?: string; subject?: string; body?: string; inReplyTo?: string; references?: string };
+export type Draft = { to?: string; cc?: string; subject?: string; body?: string; inReplyTo?: string | undefined; references?: string | undefined };
 
 export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose: () => void; onSent: () => void }) {
   const [to, setTo] = useState(initial.to || "");
@@ -15,7 +15,7 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function submit(draft: boolean) {
-    if (!draft && !to.trim()) return toast.error("Informe ao menos um destinatário");
+    if (!draft && !to.trim()) { toast.error("Informe ao menos um destinatário"); return; }
     setBusy(true);
     const fd = new FormData();
     fd.append("to", to); fd.append("cc", cc); fd.append("subject", subject);

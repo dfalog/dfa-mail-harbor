@@ -152,7 +152,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
             <div className="flex gap-1">
               <IconBtn label="Marcar como lida" onClick={() => act(selected, "seen")}><MailOpen /></IconBtn>
               <IconBtn label="Marcar como não lida" onClick={() => act(selected, "unseen")}><Mail /></IconBtn>
-              {folders?.special.archive && <IconBtn label="Arquivar" onClick={() => act(selected, "move", folders.special.archive)}><Archive /></IconBtn>}
+              {folders?.special["archive"] && <IconBtn label="Arquivar" onClick={() => act(selected, "move", folders.special["archive"])}><Archive /></IconBtn>}
               <IconBtn label="Excluir" onClick={() => act(selected, "delete")}><Trash2 /></IconBtn>
             </div>
           ) : <span className="text-xs text-muted-foreground">{list?.total ?? 0} mensagens</span>}
@@ -211,13 +211,13 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
               <div className="flex-1" />
               <IconBtn label="Favoritar" onClick={() => act([open.uid], open.flagged ? "unflag" : "flag")}><Star className={open.flagged ? "fill-primary text-primary" : ""} /></IconBtn>
               <IconBtn label="Marcar como não lida" onClick={() => act([open.uid], "unseen")}><Mail /></IconBtn>
-              {folders?.special.archive && path !== folders.special.archive && <IconBtn label="Arquivar" onClick={() => act([open.uid], "move", folders.special.archive)}><Archive /></IconBtn>}
-              {folders?.special.spam && path !== folders.special.spam && <IconBtn label="Spam" onClick={() => act([open.uid], "move", folders.special.spam)}><ShieldAlert /></IconBtn>}
+              {folders?.special["archive"] && path !== folders.special["archive"] && <IconBtn label="Arquivar" onClick={() => act([open.uid], "move", folders.special["archive"])}><Archive /></IconBtn>}
+              {folders?.special["spam"] && path !== folders.special["spam"] && <IconBtn label="Spam" onClick={() => act([open.uid], "move", folders.special["spam"])}><ShieldAlert /></IconBtn>}
               {folders?.custom.length ? (
                 <select className="rounded-lg bg-muted px-2 py-1.5 text-xs" value="" onChange={(e) => e.target.value && act([open.uid], "move", e.target.value)}>
                   <option value="">Mover para…</option>
                   {folders.custom.map((f) => <option key={f.path} value={f.path}>{f.name}</option>)}
-                  {folders.special.inbox !== path && <option value="INBOX">Caixa de entrada</option>}
+                  {folders.special["inbox"] !== path && <option value="INBOX">Caixa de entrada</option>}
                 </select>
               ) : null}
               <IconBtn label="Excluir" onClick={() => act([open.uid], "delete")}><Trash2 /></IconBtn>
