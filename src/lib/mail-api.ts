@@ -27,7 +27,12 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const t = token.get();
   if (t) headers.set("Authorization", `Bearer ${t}`);
   if (init.body && !(init.body instanceof FormData)) headers.set("Content-Type", "application/json");
-  const r = await fetch(BASE + path, { ...init, headers });
+  let r: Response;
+  try {
+    r = await fetch(BASE + path, { ...init, headers });
+  } catch {
+    throw new Error("Servidor de e-mail indisponível. Verifique se o servidor DFA Mail está online.");
+  }
   if (r.status === 401) { token.clear(); window.dispatchEvent(new Event("dfa-logout")); }
   if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "Erro de conexão com o servidor");
   return r.json();
