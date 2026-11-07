@@ -59,10 +59,11 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
 
   async function openMsg(m: MessageSummary) {
     setOpening(true);
+    setOpen({ uid: m.uid, subject: m.subject, from: m.from ? [m.from] : [], to: m.to, cc: [], date: m.date, html: null, text: "", flagged: m.flagged, attachments: [], loading: true } as MessageDetail);
     try {
       setOpen(await api.get(path, m.uid));
       setList((l) => l && { ...l, items: l.items.map((x) => (x.uid === m.uid ? { ...x, seen: true } : x)) });
-    } catch (e) { toast.error((e as Error).message); } finally { setOpening(false); }
+    } catch (e) { setOpen(null); toast.error((e as Error).message); } finally { setOpening(false); }
   }
 
   async function act(uids: number[], action: string, to?: string) {
@@ -132,7 +133,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   );
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="dark flex h-screen bg-background text-foreground">
       <div className="hidden border-r border-border lg:block">{sidebar}</div>
       {nav && <div className="fixed inset-0 z-40 flex bg-foreground/20 lg:hidden" onClick={() => setNav(false)}><div className="animate-rise shadow-soft" onClick={(e) => e.stopPropagation()}>{sidebar}</div></div>}
 
@@ -160,7 +161,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         <ul className="flex-1 overflow-y-auto">
           {list?.items.map((m) => (
             <li key={m.uid} className={cn("group flex cursor-pointer items-start gap-3 border-b border-border px-4 py-3 transition hover:bg-muted/60",
-              open?.uid === m.uid && "bg-accent/60", !m.seen && "bg-secondary")} onClick={() => openMsg(m)}>
+              open?.uid === m.uid && "bg-accent/60", !m.seen && "bg-secondary border-l-2 border-l-primary")} onClick={() => openMsg(m)} onMouseEnter={() => api.get(path, m.uid).catch(() => {})}>
               <input type="checkbox" className="mt-3 accent-primary" checked={selected.includes(m.uid)} onClick={(e) => e.stopPropagation()}
                 onChange={(e) => setSelected(e.target.checked ? [...selected, m.uid] : selected.filter((u) => u !== m.uid))} />
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-foreground">{initials(fmtAddr(m.from))}</div>
@@ -202,7 +203,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
           </div>
         )}
         {open && (
-          <div key={open.uid} className="flex flex-1 animate-rise flex-col overflow-hidden">
+          <div key={open.uid} className="flex flex-1 flex-col overflow-hidden">
             <div className="flex items-center gap-1 border-b border-border p-3">
               <button className="rounded-lg p-2 hover:bg-muted md:hidden" onClick={() => setOpen(null)} aria-label="Voltar"><ArrowLeft className="h-5 w-5" /></button>
               <IconBtn label="Responder" onClick={() => setCompose(replyDraft("reply"))}><Reply /></IconBtn>
@@ -243,10 +244,12 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
                   ))}
                 </div>
               )}
-              <div className="mt-6 overflow-hidden rounded-2xl border border-border">
-                {open.html ? (
-                  <iframe title="Conteúdo" sandbox="allow-popups allow-popups-to-escape-sandbox" className="h-[60vh] w-full bg-card"
-                    srcDoc={`<base target="_blank"><style>body{font-family:system-ui,sans-serif;margin:16px;word-wrap:break-word}img{max-width:100%;height:auto}</style>${open.html}`} />
+              <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
+                {opening ? (
+                  <div className="space-y-3 p-6">{[90, 75, 82, 60].map((w) => <div key={w} className="h-3 animate-pulse rounded bg-muted" style={{ width: w + "%" }} />)}</div>
+                ) : open.html ? (
+                  <iframe title="Conteúdo" sandbox="allow-popups allow-popups-to-escape-sandbox" className="h-[65vh] w-full bg-background"
+                    srcDoc={`<base target="_blank"><style>html{background:#fff;color:#111}body{font-family:system-ui,sans-serif;margin:16px;word-wrap:break-word}img{max-width:100%;height:auto}</style>${open.html}`} />
                 ) : <pre className="whitespace-pre-wrap p-5 font-sans text-sm">{open.text}</pre>}
               </div>
             </div>

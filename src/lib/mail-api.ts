@@ -38,6 +38,8 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   return r.json();
 }
 
+const msgCache = new Map<string, Promise<MessageDetail>>();
+
 const qs = (o: Record<string, string | number | undefined>) =>
   "?" + new URLSearchParams(Object.entries(o).filter(([, v]) => v !== undefined && v !== "") as [string, string][]).toString();
 
@@ -52,7 +54,18 @@ export const api = {
   list: (folder: string, q: string, page = 1, flagged = false) =>
     req<{ items: MessageSummary[]; total: number; page: number; pageSize: number }>(
       "/messages" + qs({ folder, q, page, flagged: flagged ? 1 : undefined })),
-  get: (folder: string, uid: number) => req<MessageDetail>(`/messages/${uid}` + qs({ folder })),
+  // Mensagens abertas ficam guardadas na memória da aba: reabrir é instantâneo.
+  get(folder: string, uid: number) {
+    const k = folder + "#" + uid;
+    let p = msgCache.get(k);
+    if (!p) {
+      p = req<MessageDetail>(`/messages/${uid}` + qs({ folder }));
+      msgCache.set(k, p);
+      p.catch(() => msgCache.delete(k));
+      if (msgCache.size > 200) msgCache.delete(msgCache.keys().next().value!);
+    }
+    return p;
+  },
   action: (folder: string, uids: number[], action: string, to?: string) =>
     req("/messages/action", { method: "POST", body: JSON.stringify({ folder, uids, action, to }) }),
   send: (fd: FormData) => req("/send", { method: "POST", body: fd }),

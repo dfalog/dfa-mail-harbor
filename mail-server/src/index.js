@@ -42,17 +42,45 @@ async function folderMap(client) {
   return { map, list };
 }
 
+// Reaproveita uma conexão IMAP por sessão (evita TLS + login a cada clique).
+// Operações da mesma sessão rodam em fila; conexão ociosa fecha após 5 min.
+const pool = new Map();
+const IDLE_MS = 5 * 60_000;
+async function getClient(token, user) {
+  let p = pool.get(token);
+  if (p && p.client.usable) return p;
+  if (p) p.client.close?.();
+  const client = imapClient(user.email, user.password);
+  client.on("error", () => {});
+  await client.connect();
+  p = { client, queue: Promise.resolve(), timer: null };
+  pool.set(token, p);
+  return p;
+}
+function scheduleIdle(token, p) {
+  clearTimeout(p.timer);
+  p.timer = setTimeout(() => { pool.delete(token); p.client.logout().catch(() => {}); }, IDLE_MS);
+}
+
 async function withImap(req, res, fn) {
-  const client = imapClient(req.user.email, req.user.password);
+  const run = async () => {
+    const p = await getClient(req.token, req.user);
+    try { return await fn(p.client); } finally { scheduleIdle(req.token, p); }
+  };
   try {
-    await client.connect();
-    const out = await fn(client);
+    const prev = pool.get(req.token)?.queue || Promise.resolve();
+    const job = prev.catch(() => {}).then(run);
+    const entry = pool.get(req.token); if (entry) entry.queue = job;
+    let out;
+    try { out = await job; } catch (e) {
+      // conexão caiu: tenta uma vez com conexão nova
+      const p = pool.get(req.token); if (p) { pool.delete(req.token); p.client.close?.(); }
+      out = await run();
+    }
     res.json(out);
   } catch (e) {
     console.error(e.message);
     res.status(500).json({ error: "Falha na operação de e-mail" });
-  } finally {
-    client.logout().catch(() => {});
   }
 }
 
@@ -82,7 +110,11 @@ app.post("/auth/login", loginLimiter, async (req, res) => {
   }
 });
 
-app.post("/auth/logout", auth, (req, res) => { destroySession(req.token); res.json({ ok: true }); });
+app.post("/auth/logout", auth, (req, res) => {
+  const p = pool.get(req.token);
+  if (p) { clearTimeout(p.timer); pool.delete(req.token); p.client.logout().catch(() => {}); }
+  destroySession(req.token); res.json({ ok: true });
+});
 app.get("/auth/me", auth, (req, res) => res.json({ email: req.user.email }));
 
 app.get("/folders", auth, (req, res) =>
