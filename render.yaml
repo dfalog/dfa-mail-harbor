@@ -11,7 +11,7 @@ services:
         generateValue: false
         sync: false
       - key: ALLOWED_ORIGIN
-        value: https://mail.dfalog.com.br,https://id-preview--10b0fef0-3eb4-48ad-91ea-02fadbc8328e.lovable.app
+        value: https://mail.dfalog.com.br,https://dfa-mail-harbor.lovable.app,https://id-preview--10b0fef0-3eb4-48ad-91ea-02fadbc8328e.lovable.app
       - key: ALLOWED_DOMAINS
         value: dfalog.com.br
 
