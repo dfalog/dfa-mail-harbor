@@ -52,6 +52,8 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-primary-glow: var(--primary-glow);
+  --color-navy: var(--navy);
+  --color-navy-foreground: var(--navy-foreground);
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --shadow-soft: var(--shadow-soft);
   --shadow-glow: var(--shadow-glow);
@@ -68,12 +70,14 @@
 :root {
   --radius: 0.75rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.2 0.02 50);
+  --foreground: oklch(0.22 0.08 268);
+  --navy: oklch(0.26 0.17 268);
+  --navy-foreground: oklch(1 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.02 50);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.2 0.02 50);
-  --primary: oklch(0.68 0.19 45);
+  --primary: oklch(0.66 0.21 40);
   --primary-foreground: oklch(1 0 0);
   --primary-glow: oklch(0.76 0.17 60);
   --secondary: oklch(0.975 0.012 60);
@@ -101,6 +105,7 @@
   --sidebar-border: oklch(0.93 0.008 60);
   --sidebar-ring: oklch(0.68 0.19 45);
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
+  --gradient-navy: linear-gradient(160deg, var(--navy), oklch(0.18 0.12 268));
   --shadow-soft: 0 1px 2px oklch(0.2 0.02 50 / 6%), 0 8px 24px -12px oklch(0.2 0.02 50 / 14%);
   --shadow-glow: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
 }
@@ -152,5 +157,6 @@
 }
 
 @utility bg-gradient-primary { background-image: var(--gradient-primary); }
+@utility bg-gradient-navy { background-image: var(--gradient-navy); }
 @utility animate-rise { animation: rise 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
