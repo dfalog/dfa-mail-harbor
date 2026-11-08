@@ -69,7 +69,7 @@
 
 :root {
   --radius: 0.75rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.985 0.004 260);
   --foreground: oklch(0.22 0.08 268);
   --navy: oklch(0.26 0.17 268);
   --navy-foreground: oklch(1 0 0);
@@ -80,33 +80,33 @@
   --primary: oklch(0.66 0.21 40);
   --primary-foreground: oklch(1 0 0);
   --primary-glow: oklch(0.76 0.17 60);
-  --secondary: oklch(0.975 0.012 60);
+  --secondary: oklch(0.97 0.02 55);
   --secondary-foreground: oklch(0.3 0.05 45);
-  --muted: oklch(0.975 0.005 60);
-  --muted-foreground: oklch(0.52 0.02 50);
+  --muted: oklch(0.965 0.006 260);
+  --muted-foreground: oklch(0.48 0.03 262);
   --accent: oklch(0.96 0.035 55);
   --accent-foreground: oklch(0.45 0.15 42);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.93 0.008 60);
-  --input: oklch(0.92 0.01 60);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.9 0.012 260);
   --ring: oklch(0.68 0.19 45);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.99 0.004 60);
-  --sidebar-foreground: oklch(0.25 0.02 50);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.3 0.06 268);
   --sidebar-primary: oklch(0.68 0.19 45);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.96 0.035 55);
-  --sidebar-accent-foreground: oklch(0.45 0.15 42);
-  --sidebar-border: oklch(0.93 0.008 60);
+  --sidebar-accent: oklch(0.95 0.03 268);
+  --sidebar-accent-foreground: oklch(0.3 0.15 268);
+  --sidebar-border: oklch(0.92 0.01 260);
   --sidebar-ring: oklch(0.68 0.19 45);
   --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-glow));
   --gradient-navy: linear-gradient(160deg, var(--navy), oklch(0.18 0.12 268));
-  --shadow-soft: 0 1px 2px oklch(0.2 0.02 50 / 6%), 0 8px 24px -12px oklch(0.2 0.02 50 / 14%);
+  --shadow-soft: 0 1px 2px oklch(0.26 0.1 268 / 5%), 0 10px 30px -14px oklch(0.26 0.1 268 / 18%);
   --shadow-glow: 0 10px 30px -10px color-mix(in oklab, var(--primary) 45%, transparent);
 }
 

@@ -101,7 +101,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   const pages = list ? Math.max(1, Math.ceil(list.total / list.pageSize)) : 1;
 
   const sidebar = (
-    <aside className="flex h-full w-72 flex-col bg-sidebar p-4">
+    <aside className="flex h-full w-72 flex-col border-r border-border bg-sidebar p-4">
       <div className="flex items-center justify-between px-2 py-1"><Logo /><button className="lg:hidden" onClick={() => setNav(false)} aria-label="Fechar menu"><X className="h-5 w-5" /></button></div>
       <button onClick={() => { setCompose({}); setNav(false); }} className="mt-6 flex items-center justify-center gap-2 rounded-2xl bg-gradient-primary py-3.5 font-semibold text-primary-foreground shadow-glow transition hover:-translate-y-0.5">
         <PenSquare className="h-4 w-4" /> Escrever
@@ -133,11 +133,11 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   );
 
   return (
-    <div className="dark flex h-screen bg-background text-foreground">
-      <div className="hidden border-r border-border lg:block">{sidebar}</div>
+    <div className="flex h-screen bg-muted text-foreground">
+      <div className="hidden lg:block">{sidebar}</div>
       {nav && <div className="fixed inset-0 z-40 flex bg-foreground/20 lg:hidden" onClick={() => setNav(false)}><div className="animate-rise shadow-soft" onClick={(e) => e.stopPropagation()}>{sidebar}</div></div>}
 
-      <section className={cn("flex min-w-0 flex-1 flex-col border-r border-border md:max-w-md xl:max-w-lg", open && "hidden md:flex")}>
+      <section className={cn("flex min-w-0 flex-1 flex-col border-r border-border bg-card md:max-w-md xl:max-w-lg", open && "hidden md:flex")}>
         <header className="flex items-center gap-2 border-b border-border p-3">
           <button className="rounded-lg p-2 hover:bg-muted lg:hidden" onClick={() => setNav(true)} aria-label="Menu"><Menu className="h-5 w-5" /></button>
           <form onSubmit={(e) => { e.preventDefault(); setPage(1); setSearch(q); }} className="flex flex-1 items-center gap-2 rounded-xl bg-muted px-3">
@@ -148,7 +148,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
           <button onClick={refresh} className="rounded-lg p-2 hover:bg-muted" aria-label="Atualizar"><RefreshCw className={cn("h-5 w-5 text-muted-foreground", loading && "animate-spin text-primary")} /></button>
         </header>
         <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-lg font-bold">{title}</h1>
+          <h1 className="text-lg font-bold text-navy">{title}</h1>
           {selected.length > 0 ? (
             <div className="flex gap-1">
               <IconBtn label="Marcar como lida" onClick={() => act(selected, "seen")}><MailOpen /></IconBtn>
@@ -161,7 +161,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         <ul className="flex-1 overflow-y-auto">
           {list?.items.map((m) => (
             <li key={m.uid} className={cn("group flex cursor-pointer items-start gap-3 border-b border-border px-4 py-3 transition hover:bg-muted/60",
-              open?.uid === m.uid && "bg-accent/60", !m.seen && "bg-secondary border-l-2 border-l-primary")} onClick={() => openMsg(m)} onMouseEnter={() => api.get(path, m.uid).catch(() => {})}>
+              open?.uid === m.uid && "bg-accent/60", !m.seen && "bg-secondary/60 border-l-2 border-l-primary")} onClick={() => openMsg(m)} onMouseEnter={() => api.get(path, m.uid).catch(() => {})}>
               <input type="checkbox" className="mt-3 accent-primary" checked={selected.includes(m.uid)} onClick={(e) => e.stopPropagation()}
                 onChange={(e) => setSelected(e.target.checked ? [...selected, m.uid] : selected.filter((u) => u !== m.uid))} />
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-accent-foreground">{initials(fmtAddr(m.from))}</div>
@@ -194,9 +194,8 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         )}
       </section>
 
-      <main className={cn("min-w-0 flex-1 flex-col", open ? "flex" : "hidden md:flex")}>
-        {opening && !open && <div className="flex flex-1 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}
-        {!open && !opening && (
+      <main className={cn("min-w-0 flex-1 flex-col bg-background", open ? "flex" : "hidden md:flex")}>
+                {!open && !opening && (
           <div className="flex flex-1 flex-col items-center justify-center text-muted-foreground">
             <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-accent"><Mail className="h-9 w-9 text-primary" /></div>
             <p className="mt-4 text-sm">Selecione uma mensagem para ler</p>
@@ -224,7 +223,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
               <IconBtn label="Excluir" onClick={() => act([open.uid], "delete")}><Trash2 /></IconBtn>
             </div>
             <div className="flex-1 overflow-y-auto p-6">
-              <h2 className="text-2xl font-bold tracking-tight">{open.subject}</h2>
+              <h2 className="text-2xl font-bold tracking-tight text-navy">{open.subject}</h2>
               <div className="mt-5 flex items-start gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-primary font-bold text-primary-foreground">{initials(fmtAddr(open.from[0]))}</div>
                 <div className="min-w-0 flex-1 text-sm">
@@ -246,9 +245,9 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
               )}
               <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card">
                 {opening ? (
-                  <div className="space-y-3 p-6">{[90, 75, 82, 60].map((w) => <div key={w} className="h-3 animate-pulse rounded bg-muted" style={{ width: w + "%" }} />)}</div>
+                  <div className="space-y-3 p-6">{[90, 75, 82, 60].map((w) => <div key={w} className="h-3 animate-pulse rounded bg-border" style={{ width: w + "%" }} />)}</div>
                 ) : open.html ? (
-                  <iframe title="Conteúdo" sandbox="allow-popups allow-popups-to-escape-sandbox" className="h-[65vh] w-full bg-background"
+                  <iframe title="Conteúdo" sandbox="allow-popups allow-popups-to-escape-sandbox" className="h-[65vh] w-full bg-card"
                     srcDoc={`<base target="_blank"><style>html{background:#fff;color:#111}body{font-family:system-ui,sans-serif;margin:16px;word-wrap:break-word}img{max-width:100%;height:auto}</style>${open.html}`} />
                 ) : <pre className="whitespace-pre-wrap p-5 font-sans text-sm">{open.text}</pre>}
               </div>
