@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Paperclip, Send, X, Loader2, Save } from "lucide-react";
+import { Paperclip, Send, X, Loader2, Save, PenLine } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/mail-api";
 
@@ -9,7 +9,16 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
   const [to, setTo] = useState(initial.to || "");
   const [cc, setCc] = useState(initial.cc || "");
   const [subject, setSubject] = useState(initial.subject || "");
-  const [body, setBody] = useState(initial.body || "");
+  const SIG_KEY = "dfa-mail-signature";
+  const [sig, setSig] = useState(() => (typeof window !== "undefined" && localStorage.getItem(SIG_KEY)) || "");
+  const [editSig, setEditSig] = useState(false);
+  const [body, setBody] = useState(() => {
+    const s = (typeof window !== "undefined" && localStorage.getItem(SIG_KEY)) || "";
+    return s ? "\n\n-- \n" + s + (initial.body || "") : initial.body || "";
+  });
+  function saveSig(v: string) {
+    setSig(v); localStorage.setItem(SIG_KEY, v);
+  }
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -44,6 +53,17 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
         <input className={field} placeholder="Cc" value={cc} onChange={(e) => setCc(e.target.value)} />
         <input className={field} placeholder="Assunto" value={subject} onChange={(e) => setSubject(e.target.value)} />
         <textarea className="min-h-64 flex-1 resize-none bg-transparent px-4 py-3 text-sm outline-none" value={body} onChange={(e) => setBody(e.target.value)} />
+        {editSig && (
+          <div className="border-t border-border bg-muted/50 px-4 py-3">
+            <p className="mb-2 text-xs font-semibold text-foreground">Assinatura (adicionada automaticamente nas novas mensagens)</p>
+            <textarea className="h-24 w-full resize-none rounded-lg border border-input bg-card p-2 text-sm outline-none focus:border-primary"
+              placeholder={"Nome\nComercial — DFA LOG\n(00) 00000-0000"} value={sig} onChange={(e) => saveSig(e.target.value)} />
+            <div className="mt-2 flex gap-2">
+              <button onClick={() => { if (sig) setBody(body + "\n\n-- \n" + sig); setEditSig(false); }} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Inserir nesta mensagem</button>
+              <button onClick={() => setEditSig(false)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted">Fechar</button>
+            </div>
+          </div>
+        )}
         {files.length > 0 && (
           <div className="flex flex-wrap gap-2 px-4 pb-2">
             {files.map((f, i) => (
@@ -61,7 +81,10 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
           <button disabled={busy} onClick={() => submit(true)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted">
             <Save className="h-4 w-4" /> Rascunho
           </button>
-          <button onClick={() => fileRef.current?.click()} className="ml-auto rounded-xl p-2.5 text-muted-foreground hover:bg-muted" aria-label="Anexar">
+          <button onClick={() => setEditSig(!editSig)} className="ml-auto flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted" title="Assinatura">
+            <PenLine className="h-4 w-4" /> Assinatura
+          </button>
+          <button onClick={() => fileRef.current?.click()} className=" rounded-xl p-2.5 text-muted-foreground hover:bg-muted" aria-label="Anexar">
             <Paperclip className="h-5 w-5" />
           </button>
           <input ref={fileRef} type="file" multiple hidden onChange={(e) => { setFiles([...files, ...Array.from(e.target.files || [])]); e.target.value = ""; }} />

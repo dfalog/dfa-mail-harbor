@@ -4,7 +4,7 @@ import { api, token } from "@/lib/mail-api";
 import logo from "@/assets/dfa-log-logo.png.asset.json";
 
 export function LoginScreen({ onLogin }: { onLogin: (email: string) => void }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("comercial@dfalog.com.br");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,9 +21,9 @@ export function LoginScreen({ onLogin }: { onLogin: (email: string) => void }) {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-navy p-4">
-      <div className="pointer-events-none absolute -left-40 top-0 h-full w-96 -skew-x-12 bg-primary/15" />
-      <div className="pointer-events-none absolute -right-32 bottom-0 h-2/3 w-72 -skew-x-12 bg-primary/10" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted p-4">
+      <div className="pointer-events-none absolute -left-40 top-0 h-full w-96 -skew-x-12 bg-primary/10" />
+      <div className="pointer-events-none absolute -right-32 bottom-0 h-2/3 w-72 -skew-x-12 bg-navy/5" />
       <div className="relative w-full max-w-md">
         <form onSubmit={submit} className="w-full animate-rise rounded-2xl border-t-4 border-primary bg-card p-8 shadow-soft sm:p-10">
           <div className="mb-8 flex flex-col items-center gap-3">
@@ -54,7 +54,7 @@ export function LoginScreen({ onLogin }: { onLogin: (email: string) => void }) {
           </button>
           <p className="mt-6 text-center text-xs text-muted-foreground">Sua senha é validada direto no servidor de e-mail e nunca fica salva no navegador.</p>
         </form>
-        <p className="mt-6 flex items-center justify-center gap-2 text-xs text-navy-foreground/70"><ShieldCheck className="h-4 w-4" /> Conexão criptografada TLS/SSL</p>
+        <p className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground"><ShieldCheck className="h-4 w-4" /> Conexão criptografada TLS/SSL</p>
       </div>
     </div>
   );
