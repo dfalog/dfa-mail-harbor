@@ -4,7 +4,7 @@ import { api, token } from "@/lib/mail-api";
 import logo from "@/assets/dfa-log-logo.png.asset.json";
 
 export function LoginScreen({ onLogin }: { onLogin: (email: string) => void }) {
-  const [email, setEmail] = useState("comercial@dfalog.com.br");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Inbox, Send, FileText, Archive, ShieldAlert, Trash2, Star, Search, RefreshCw, PenSquare, LogOut, Menu,
-  Folder, FolderPlus, Paperclip, Reply, ReplyAll, Forward, MailOpen, Mail, ArrowLeft, Download, Loader2, X,
+  Folder, FolderPlus, Paperclip, Reply, ReplyAll, Forward, MailOpen, Mail, ArrowLeft, Download, Loader2, X, Settings,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, fmtAddr, type Folders, type MessageDetail, type MessageSummary } from "@/lib/mail-api";
@@ -39,6 +39,9 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   const [selected, setSelected] = useState<number[]>([]);
   const [compose, setCompose] = useState<Draft | null>(null);
   const [nav, setNav] = useState(false);
+  const [settings, setSettings] = useState(false);
+  const [sig, setSig] = useState("");
+  useEffect(() => { setSig(localStorage.getItem("dfa-mail-signature") || ""); }, []);
 
   const path = view === "starred" ? "INBOX" : folders?.special[view] || view;
 
@@ -127,6 +130,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
       <div className="mt-4 flex items-center gap-3 rounded-2xl border border-border p-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent font-bold text-accent-foreground">{initials(email)}</div>
         <span className="flex-1 truncate text-sm font-medium">{email}</span>
+        <button onClick={() => { setSettings(true); setNav(false); }} aria-label="Configurações" title="Configurações" className="text-muted-foreground hover:text-primary"><Settings className="h-4 w-4" /></button>
         <button onClick={onLogout} aria-label="Sair" className="text-muted-foreground hover:text-destructive"><LogOut className="h-4 w-4" /></button>
       </div>
     </aside>
@@ -256,6 +260,21 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         )}
       </main>
 
+      {settings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-4 backdrop-blur-sm" onClick={() => setSettings(false)}>
+          <div className="w-full max-w-lg animate-rise rounded-2xl bg-card p-6 shadow-soft" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-navy">Configurações</h2><button onClick={() => setSettings(false)} aria-label="Fechar"><X className="h-5 w-5" /></button></div>
+            <label className="mt-5 block text-sm font-semibold">Assinatura</label>
+            <p className="text-xs text-muted-foreground">Adicionada automaticamente em toda mensagem nova.</p>
+            <textarea className="mt-2 h-32 w-full resize-none rounded-xl border border-input bg-background p-3 text-sm outline-none focus:border-primary"
+              placeholder={"Nome\nComercial — DFA LOG\n(00) 00000-0000"} value={sig} onChange={(e) => setSig(e.target.value)} />
+            <div className="mt-4 flex justify-end gap-2">
+              <button onClick={() => setSettings(false)} className="rounded-xl px-4 py-2 text-sm text-muted-foreground hover:bg-muted">Cancelar</button>
+              <button onClick={() => { localStorage.setItem("dfa-mail-signature", sig); setSettings(false); toast.success("Assinatura salva"); }} className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {compose && <Composer initial={compose} onClose={() => setCompose(null)} onSent={() => { setCompose(null); refresh(); }} />}
     </div>
   );
