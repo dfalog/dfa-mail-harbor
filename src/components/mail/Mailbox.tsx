@@ -207,11 +207,11 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         )}
         {open && (
           <div key={open.uid} className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex items-center gap-1 border-b border-border p-3">
+            <div className="flex flex-wrap items-center gap-2 border-b border-border bg-muted/40 p-3">
               <button className="rounded-lg p-2 hover:bg-muted md:hidden" onClick={() => setOpen(null)} aria-label="Voltar"><ArrowLeft className="h-5 w-5" /></button>
-              <IconBtn label="Responder" onClick={() => setCompose(replyDraft("reply"))}><Reply /></IconBtn>
-              <IconBtn label="Responder a todos" onClick={() => setCompose(replyDraft("all"))}><ReplyAll /></IconBtn>
-              <IconBtn label="Encaminhar" onClick={() => setCompose(replyDraft("fwd"))}><Forward /></IconBtn>
+              <button onClick={() => setCompose(replyDraft("reply"))} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition bg-gradient-primary text-primary-foreground shadow-soft hover:opacity-90"><Reply className="h-4 w-4" /><span className="hidden sm:inline">Responder</span></button>
+              <button onClick={() => setCompose(replyDraft("all"))} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition border border-border bg-card text-navy hover:border-primary hover:text-primary"><ReplyAll className="h-4 w-4" /><span className="hidden sm:inline">Responder a todos</span></button>
+              <button onClick={() => setCompose(replyDraft("fwd"))} className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition border border-border bg-card text-navy hover:border-primary hover:text-primary"><Forward className="h-4 w-4" /><span className="hidden sm:inline">Encaminhar</span></button>
               <div className="flex-1" />
               <IconBtn label="Favoritar" onClick={() => act([open.uid], open.flagged ? "unflag" : "flag")}><Star className={open.flagged ? "fill-primary text-primary" : ""} /></IconBtn>
               <IconBtn label="Marcar como não lida" onClick={() => act([open.uid], "unseen")}><Mail /></IconBtn>
@@ -282,7 +282,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
 
 function IconBtn({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactElement<{ className?: string }> }) {
   return (
-    <button title={label} aria-label={label} onClick={onClick} className="rounded-lg p-2 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground [&>svg]:h-[18px] [&>svg]:w-[18px]">
+    <button title={label} aria-label={label} onClick={onClick} className="rounded-lg p-2 text-navy transition hover:bg-accent hover:text-accent-foreground [&>svg]:h-5 [&>svg]:w-5">
       {children}
     </button>
   );
