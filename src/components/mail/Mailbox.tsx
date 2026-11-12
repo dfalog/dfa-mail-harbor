@@ -264,6 +264,14 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-4 backdrop-blur-sm" onClick={() => setSettings(false)}>
           <div className="w-full max-w-lg animate-rise rounded-2xl bg-card p-6 shadow-soft" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-navy">Configurações</h2><button onClick={() => setSettings(false)} aria-label="Fechar"><X className="h-5 w-5" /></button></div>
+            <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm">
+              <div className="mb-2 font-semibold text-navy">Configurações da conta</div>
+              {[["E-mail", email], ["Usuário", email], ["Entrada (IMAP)", "imap.hostinger.com · porta 993 · SSL/TLS"], ["Saída (SMTP)", "smtp.hostinger.com · porta 465 · SSL/TLS"], ["Autenticação", "Senha normal (a mesma do login)"]].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3 border-t border-border py-1.5 first-of-type:border-t-0">
+                  <span className="text-muted-foreground">{k}</span><span className="text-right font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
             <label className="mt-5 block text-sm font-semibold">Assinatura</label>
             <p className="text-xs text-muted-foreground">Adicionada automaticamente em toda mensagem nova.</p>
             <textarea className="mt-2 h-32 w-full resize-none rounded-xl border border-input bg-background p-3 text-sm outline-none focus:border-primary"
