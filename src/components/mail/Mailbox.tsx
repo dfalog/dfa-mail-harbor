@@ -1,3 +1,4 @@
+import { loadRules, saveRules, planMoves, type Rule } from "@/lib/mail-rules";
 import { useCallback, useEffect, useState } from "react";
 import {
   Inbox, Send, FileText, Archive, ShieldAlert, Trash2, Star, Search, RefreshCw, PenSquare, LogOut, Menu,
@@ -42,6 +43,8 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   const [settings, setSettings] = useState(false);
   const [sig, setSig] = useState("");
   const [sigImg, setSigImg] = useState("");
+  const [rules, setRules] = useState<Rule[]>([]);
+  useEffect(() => { setRules(loadRules()); }, []);
   useEffect(() => {
     setSig(localStorage.getItem("dfa-mail-signature") || "");
     setSigImg(localStorage.getItem("dfa-mail-signature-img") || "");
@@ -69,7 +72,23 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   const loadList = useCallback(async () => {
     if (!folders) return;
     setLoading(true);
-    try { setList(await api.list(path, search, page, view === "starred")); setSelected([]); }
+    try {
+      const r = await api.list(path, search, page, view === "starred");
+      const rs = loadRules();
+      if (view === "inbox" && !search && rs.length) {
+        const plan = planMoves(r.items, rs);
+        const moved = new Set<number>();
+        for (const [to, uids] of Object.entries(plan)) {
+          try { await api.action(path, uids, "move", to); uids.forEach((u) => moved.add(u)); } catch {}
+        }
+        if (moved.size) {
+          r.items = r.items.filter((m) => !moved.has(m.uid)); r.total -= moved.size;
+          toast.success(`${moved.size} e-mail(s) movido(s) pelas regras`);
+          api.folders().then(setFolders).catch(() => {});
+        }
+      }
+      setList(r); setSelected([]);
+    }
     catch (e) { toast.error((e as Error).message); } finally { setLoading(false); }
   }, [folders, path, search, page, view]);
 
@@ -282,7 +301,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
 
       {settings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 p-4 backdrop-blur-sm" onClick={() => setSettings(false)}>
-          <div className="w-full max-w-lg animate-rise rounded-2xl bg-card p-6 shadow-soft" onClick={(e) => e.stopPropagation()}>
+          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto animate-rise rounded-2xl bg-card p-6 shadow-soft" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between"><h2 className="text-lg font-bold text-navy">Configurações</h2><button onClick={() => setSettings(false)} aria-label="Fechar"><X className="h-5 w-5" /></button></div>
             <div className="mt-5 rounded-xl border border-border bg-muted/40 p-4 text-sm">
               <div className="mb-2 font-semibold text-navy">Configurações da conta</div>
@@ -312,12 +331,37 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
                 </div>
               ) : <p className="mt-2 rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">Nenhuma imagem escolhida</p>}
             </div>
+            <div className="mt-5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Regras de pastas</span>
+                <button onClick={() => setRules([...rules, { field: "from", text: "", folder: folders?.custom[0]?.path || "" }])}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-navy hover:bg-muted">+ Nova regra</button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">E-mails recebidos que combinarem são movidos automaticamente da Caixa de entrada para a pasta. Crie as pastas no menu lateral.</p>
+              {rules.map((r, i) => {
+                const up = (p: Partial<Rule>) => setRules(rules.map((x, j) => (j === i ? { ...x, ...p } : x)));
+                return (
+                  <div key={i} className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-background p-2 text-sm">
+                    <select value={r.field} onChange={(e) => up({ field: e.target.value as Rule["field"] })} className="rounded-lg border border-input bg-background px-2 py-1">
+                      <option value="from">Remetente contém</option><option value="subject">Assunto contém</option>
+                    </select>
+                    <input value={r.text} onChange={(e) => up({ text: e.target.value })} placeholder="ex: banco, projeto" className="min-w-0 flex-1 rounded-lg border border-input bg-background px-2 py-1 outline-none focus:border-primary" />
+                    <select value={r.folder} onChange={(e) => up({ folder: e.target.value })} className="rounded-lg border border-input bg-background px-2 py-1">
+                      <option value="">Pasta…</option>
+                      {folders?.custom.map((f) => <option key={f.path} value={f.path}>{f.name}</option>)}
+                    </select>
+                    <button onClick={() => setRules(rules.filter((_, j) => j !== i))} aria-label="Remover regra" className="rounded-lg p-1 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
+                  </div>
+                );
+              })}
+            </div>
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={() => setSettings(false)} className="rounded-xl px-4 py-2 text-sm text-muted-foreground hover:bg-muted">Cancelar</button>
               <button onClick={() => {
                 localStorage.setItem("dfa-mail-signature", sig);
                 if (sigImg) localStorage.setItem("dfa-mail-signature-img", sigImg); else localStorage.removeItem("dfa-mail-signature-img");
-                setSettings(false); toast.success("Assinatura salva");
+                saveRules(rules);
+                setSettings(false); toast.success("Configurações salvas"); loadList();
               }} className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Salvar</button>
             </div>
           </div>
