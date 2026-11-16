@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Inbox, Send, FileText, Archive, ShieldAlert, Trash2, Star, Search, RefreshCw, PenSquare, LogOut, Menu,
-  Folder, FolderPlus, Paperclip, Reply, ReplyAll, Forward, MailOpen, Mail, ArrowLeft, Download, Loader2, X, Settings,
+  Folder, FolderPlus, Paperclip, Reply, ReplyAll, Forward, MailOpen, Mail, ArrowLeft, Download, Loader2, X, Settings, Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, fmtAddr, type Folders, type MessageDetail, type MessageSummary } from "@/lib/mail-api";
@@ -41,7 +41,27 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
   const [nav, setNav] = useState(false);
   const [settings, setSettings] = useState(false);
   const [sig, setSig] = useState("");
-  useEffect(() => { setSig(localStorage.getItem("dfa-mail-signature") || ""); }, []);
+  const [sigImg, setSigImg] = useState("");
+  useEffect(() => {
+    setSig(localStorage.getItem("dfa-mail-signature") || "");
+    setSigImg(localStorage.getItem("dfa-mail-signature-img") || "");
+  }, []);
+
+  // Reduz a imagem para caber leve no e-mail (máx. 600px de largura).
+  const pickSigImg = (f: File | undefined) => {
+    if (!f) return;
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 600 / img.width);
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+      c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height);
+      setSigImg(c.toDataURL("image/png"));
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => toast.error("Não foi possível ler essa imagem");
+    img.src = URL.createObjectURL(f);
+  };
 
   const path = view === "starred" ? "INBOX" : folders?.special[view] || view;
 
@@ -276,9 +296,29 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
             <p className="text-xs text-muted-foreground">Adicionada automaticamente em toda mensagem nova.</p>
             <textarea className="mt-2 h-32 w-full resize-none rounded-xl border border-input bg-background p-3 text-sm outline-none focus:border-primary"
               placeholder={"Nome\nComercial — DFA LOG\n(00) 00000-0000"} value={sig} onChange={(e) => setSig(e.target.value)} />
+            <div className="mt-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Imagem da assinatura</span>
+                <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-navy hover:bg-muted">
+                  <ImageIcon className="h-4 w-4" /> Escolher imagem
+                  <input type="file" accept="image/*" hidden onChange={(e) => { pickSigImg(e.target.files?.[0]); e.target.value = ""; }} />
+                </label>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">Logo ou assinatura escaneada. Aparece abaixo do texto em toda mensagem nova.</p>
+              {sigImg ? (
+                <div className="mt-2 flex items-start gap-3 rounded-xl border border-border bg-background p-3">
+                  <img src={sigImg} alt="Assinatura" className="max-h-24 max-w-48 rounded" />
+                  <button onClick={() => setSigImg("")} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive" aria-label="Remover imagem"><X className="h-4 w-4" /></button>
+                </div>
+              ) : <p className="mt-2 rounded-xl border border-dashed border-border p-3 text-center text-xs text-muted-foreground">Nenhuma imagem escolhida</p>}
+            </div>
             <div className="mt-4 flex justify-end gap-2">
               <button onClick={() => setSettings(false)} className="rounded-xl px-4 py-2 text-sm text-muted-foreground hover:bg-muted">Cancelar</button>
-              <button onClick={() => { localStorage.setItem("dfa-mail-signature", sig); setSettings(false); toast.success("Assinatura salva"); }} className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Salvar</button>
+              <button onClick={() => {
+                localStorage.setItem("dfa-mail-signature", sig);
+                if (sigImg) localStorage.setItem("dfa-mail-signature-img", sigImg); else localStorage.removeItem("dfa-mail-signature-img");
+                setSettings(false); toast.success("Assinatura salva");
+              }} className="rounded-xl bg-gradient-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Salvar</button>
             </div>
           </div>
         </div>

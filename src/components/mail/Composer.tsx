@@ -24,7 +24,9 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
     const fd = new FormData();
     fd.append("to", to); fd.append("cc", cc); fd.append("subject", subject);
     fd.append("text", body);
-    fd.append("html", body.split("\n").map((l) => l.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!)).join("<br>"));
+    const sigImg = (typeof window !== "undefined" && localStorage.getItem("dfa-mail-signature-img")) || "";
+    const htmlBody = body.split("\n").map((l) => l.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]!)).join("<br>");
+    fd.append("html", sigImg ? `${htmlBody}<br><img src="${sigImg}" alt="Assinatura" style="max-width:600px">` : htmlBody);
     if (initial.inReplyTo) fd.append("inReplyTo", initial.inReplyTo);
     if (initial.references) fd.append("references", initial.references);
     if (draft) fd.append("draft", "true");
