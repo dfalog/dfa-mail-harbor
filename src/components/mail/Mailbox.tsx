@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Inbox, Send, FileText, Archive, ShieldAlert, Trash2, Star, Search, RefreshCw, PenSquare, LogOut, Menu,
   Folder, FolderPlus, Paperclip, Reply, ReplyAll, Forward, MailOpen, Mail, ArrowLeft, Download, Loader2, X, Settings, Image as ImageIcon,
+  Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, fmtAddr, type Folders, type MessageDetail, type MessageSummary } from "@/lib/mail-api";
@@ -256,6 +257,13 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
               <IconBtn label="Marcar como não lida" onClick={() => act([open.uid], "unseen")}><Mail /></IconBtn>
               {folders?.special["archive"] && path !== folders.special["archive"] && <IconBtn label="Arquivar" onClick={() => act([open.uid], "move", folders.special["archive"])}><Archive /></IconBtn>}
               {folders?.special["spam"] && path !== folders.special["spam"] && <IconBtn label="Spam" onClick={() => act([open.uid], "move", folders.special["spam"])}><ShieldAlert /></IconBtn>}
+              {folders?.special["trash"] && open.from?.[0]?.address && (
+                <IconBtn label="Bloquear remetente" onClick={() => {
+                  const addr = open.from[0]!.address!; const t = folders.special["trash"]!;
+                  const rs = loadRules(); if (!rs.some((r) => r.field === "from" && r.text === addr && r.folder === t)) rs.push({ field: "from", text: addr, folder: t });
+                  saveRules(rs); setRules(rs); toast.success(`${addr} bloqueado`); act([open.uid], "move", t);
+                }}><Ban /></IconBtn>
+              )}
               {folders?.custom.length ? (
                 <select className="rounded-lg bg-muted px-2 py-1.5 text-xs" value="" onChange={(e) => e.target.value && act([open.uid], "move", e.target.value)}>
                   <option value="">Mover para…</option>
@@ -349,6 +357,7 @@ export function Mailbox({ email, onLogout }: { email: string; onLogout: () => vo
                     <select value={r.folder} onChange={(e) => up({ folder: e.target.value })} className="rounded-lg border border-input bg-background px-2 py-1">
                       <option value="">Pasta…</option>
                       {folders?.custom.map((f) => <option key={f.path} value={f.path}>{f.name}</option>)}
+                      {folders?.special["trash"] && <option value={folders.special["trash"]}>Bloquear (Lixeira)</option>}
                     </select>
                     <button onClick={() => setRules(rules.filter((_, j) => j !== i))} aria-label="Remover regra" className="rounded-lg p-1 text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
                   </div>

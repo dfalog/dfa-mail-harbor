@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Paperclip, Send, X, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/mail-api";
@@ -17,9 +17,17 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
+  useEffect(() => {
+    if (countdown === null) return;
+    if (countdown <= 0) { setCountdown(null); void submit(false, true); return; }
+    const t = setTimeout(() => setCountdown((c) => (c === null ? null : c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
 
-  async function submit(draft: boolean) {
+  async function submit(draft: boolean, now = false) {
     if (!draft && !to.trim()) { toast.error("Informe ao menos um destinatário"); return; }
+    if (!draft && !now) { setCountdown(10); return; }
     setBusy(true);
     const fd = new FormData();
     fd.append("to", to); fd.append("cc", cc); fd.append("subject", subject);
@@ -61,9 +69,16 @@ export function Composer({ initial, onClose, onSent }: { initial: Draft; onClose
           </div>
         )}
         <div className="flex items-center gap-2 border-t border-border px-4 py-3">
+          {countdown !== null ? (
+            <div className="flex items-center gap-3 rounded-xl bg-navy px-4 py-2 text-sm text-navy-foreground">
+              Enviando em {countdown}s
+              <button onClick={() => setCountdown(null)} className="rounded-lg bg-primary px-3 py-1 font-semibold text-primary-foreground">Desfazer</button>
+            </div>
+          ) : (
           <button disabled={busy} onClick={() => submit(false)} className="flex items-center gap-2 rounded-xl bg-gradient-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-70">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Enviar
           </button>
+          )}
           <button disabled={busy} onClick={() => submit(true)} className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted">
             <Save className="h-4 w-4" /> Rascunho
           </button>
